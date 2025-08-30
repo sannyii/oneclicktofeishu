@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型可用性测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .model-test {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.available {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.unavailable {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.testing {
+            background: #fff3cd;
+            color: #856404;
+        }
+        input, button {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #3370ff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2860e1;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>OpenAI模型可用性测试</h1>
+    
+    <div class="test-section">
+        <h2>API密钥配置</h2>
+        <input type="password" id="apiKey" placeholder="请输入OpenAI API Key" style="width: 300px;">
+        <button onclick="testModels()">测试所有模型</button>
+        <button onclick="testSingleModel()">测试单个模型</button>
+        <input type="text" id="singleModel" placeholder="输入模型名称，如: gpt-4o-mini" style="width: 200px;">
+    </div>
+    
+    <div class="test-section">
+        <h2>模型测试结果</h2>
+        <div id="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试说明</h2>
+        <ul>
+            <li><strong>GPT-5 Nano</strong>: 最新高效模型，推荐使用</li>
+            <li><strong>GPT-4o Mini</strong>: 性价比高，功能强大</li>
+            <li><strong>GPT-4o</strong>: 功能全面，性能优秀</li>
+            <li><strong>GPT-3.5 Turbo</strong>: 稳定可靠，价格便宜</li>
+            <li><strong>GPT-4 Turbo</strong>: 功能强大，适合复杂任务</li>
+        </ul>
+    </div>
+
+    <script>
+        const models = [
+            'gpt-5-nano',
+            'gpt-4o-mini',
+            'gpt-4o', 
+            'gpt-3.5-turbo',
+            'gpt-4-turbo',
+            'gpt-4',
+            'gpt-5-min'
+        ];
+
+        async function testModels() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                alert('请输入API密钥');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>正在测试模型可用性...</p>';
+
+            let results = '';
+            
+            for (const model of models) {
+                results += `\n测试模型: ${model}\n`;
+                results += '='.repeat(30) + '\n';
+                
+                try {
+                    // 测试模型列表
+                    const listResponse = await fetch('https://api.openai.com/v1/models', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`
+                        }
+                    });
+
+                    if (!listResponse.ok) {
+                        results += `❌ 无法获取模型列表: ${listResponse.status}\n`;
+                        continue;
+                    }
+
+                    const listData = await listResponse.json();
+                    const availableModels = listData.data.map(m => m.id);
+                    
+                    if (availableModels.includes(model)) {
+                        results += `✅ 模型在可用列表中\n`;
+                        
+                        // 测试实际调用
+                        try {
+                            const testResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${apiKey}`
+                                },
+                                body: JSON.stringify({
+                                    model: model,
+                                    messages: [
+                                        {
+                                            role: 'user',
+                                            content: 'Hello, this is a test message.'
+                                        }
+                                    ],
+                                    max_tokens: 10
+                                })
+                            });
+
+                            if (testResponse.ok) {
+                                results += `✅ 模型调用成功\n`;
+                            } else {
+                                const errorData = await testResponse.json();
+                                results += `❌ 模型调用失败: ${errorData.error?.message || testResponse.statusText}\n`;
+                            }
+                        } catch (error) {
+                            results += `❌ 模型调用异常: ${error.message}\n`;
+                        }
+                    } else {
+                        results += `❌ 模型不在可用列表中\n`;
+                        
+                        // 建议替代模型
+                        const alternatives = {
+                            'gpt-5-min': ['gpt-5-nano', 'gpt-4o-mini', 'gpt-4o'],
+                            'gpt-5-nano': ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
+                            'gpt-4o-mini': ['gpt-5-nano', 'gpt-4o', 'gpt-3.5-turbo'],
+                            'gpt-4o': ['gpt-5-nano', 'gpt-4o-mini', 'gpt-3.5-turbo']
+                        };
+                        
+                        const modelAlternatives = alternatives[model] || ['gpt-5-nano', 'gpt-4o-mini'];
+                        const availableAlternatives = modelAlternatives.filter(alt => availableModels.includes(alt));
+                        
+                        if (availableAlternatives.length > 0) {
+                            results += `💡 建议替代模型: ${availableAlternatives.join(', ')}\n`;
+                        }
+                    }
+                } catch (error) {
+                    results += `❌ 测试失败: ${error.message}\n`;
+                }
+                
+                results += '\n';
+            }
+
+            resultsDiv.innerHTML = `<div class="result">${results}</div>`;
+        }
+
+        async function testSingleModel() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const model = document.getElementById('singleModel').value.trim();
+            
+            if (!apiKey) {
+                alert('请输入API密钥');
+                return;
+            }
+            
+            if (!model) {
+                alert('请输入模型名称');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<p>正在测试模型: ${model}</p>`;
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: 'Hello, this is a test message.'
+                            }
+                        ],
+                        max_tokens: 10
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultsDiv.innerHTML = `
+                        <div class="result">
+                        ✅ 模型 ${model} 测试成功！
+                        
+                        响应内容: ${data.choices[0].message.content}
+                        
+                        使用情况: ${JSON.stringify(data.usage, null, 2)}
+                        </div>
+                    `;
+                } else {
+                    const errorData = await response.json();
+                    resultsDiv.innerHTML = `
+                        <div class="result">
+                        ❌ 模型 ${model} 测试失败
+                        
+                        错误信息: ${errorData.error?.message || response.statusText}
+                        
+                        错误代码: ${errorData.error?.code || 'unknown'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="result">
+                    ❌ 测试异常: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

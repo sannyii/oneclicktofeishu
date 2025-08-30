@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>悬浮按钮拖动测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .feature-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .feature-list h3 {
+            color: #495057;
+            margin-top: 0;
+        }
+        .feature-list ul {
+            color: #6c757d;
+        }
+        .test-area {
+            background: #e9ecef;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .instruction {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .drag-tips {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 悬浮按钮拖动功能测试</h1>
+        
+        <div class="instruction">
+            <h3>📋 测试说明</h3>
+            <p>这个页面用于测试悬浮按钮的拖动功能。你应该能在页面右侧看到一个蓝色的圆形按钮，现在可以自由拖动它到任何位置。</p>
+        </div>
+
+        <div class="feature-list">
+            <h3>🚀 拖动功能特性</h3>
+            <ul>
+                <li><strong>自由拖动</strong>：可以拖动到页面的任何位置</li>
+                <li><strong>边界限制</strong>：按钮不会超出页面边界</li>
+                <li><strong>位置记忆</strong>：拖动后的位置会自动保存</li>
+                <li><strong>触摸支持</strong>：支持移动设备的触摸拖动</li>
+                <li><strong>视觉反馈</strong>：拖动时鼠标指针会变为抓取状态</li>
+                <li><strong>智能防冲突</strong>：拖动时不会触发点击事件</li>
+            </ul>
+        </div>
+
+        <div class="test-area">
+            <h3>🧪 测试步骤</h3>
+            <ol style="text-align: left; display: inline-block;">
+                <li>找到页面右侧的蓝色悬浮按钮</li>
+                <li>将鼠标悬停在按钮上，应该看到"发送到飞书"提示</li>
+                <li>按住鼠标左键，开始拖动按钮</li>
+                <li>将按钮拖动到页面的不同位置</li>
+                <li>释放鼠标，按钮会停在当前位置</li>
+                <li>刷新页面，按钮应该保持在拖动后的位置</li>
+                <li>尝试点击按钮，确保功能正常</li>
+            </ol>
+        </div>
+
+        <div class="drag-tips">
+            <h3>💡 使用技巧</h3>
+            <ul style="text-align: left;">
+                <li><strong>快速定位</strong>：可以将按钮拖动到最常用的位置</li>
+                <li><strong>避免遮挡</strong>：拖动时注意不要遮挡重要内容</li>
+                <li><strong>重置位置</strong>：如果需要重置位置，可以重新安装扩展</li>
+                <li><strong>多设备同步</strong>：位置设置会在同一Chrome账户下同步</li>
+            </ul>
+        </div>
+
+        <div class="feature-list">
+            <h3>🔧 技术实现</h3>
+            <ul>
+                <li><strong>事件处理</strong>：使用mousedown、mousemove、mouseup事件</li>
+                <li><strong>触摸支持</strong>：同时支持touchstart、touchmove、touchend</li>
+                <li><strong>位置计算</strong>：实时计算按钮在页面中的相对位置</li>
+                <li><strong>数据存储</strong>：使用chrome.storage.sync保存位置信息</li>
+                <li><strong>边界检测</strong>：确保按钮不会超出可视区域</li>
+                <li><strong>状态管理</strong>：拖动时禁用点击事件，避免冲突</li>
+            </ul>
+        </div>
+
+        <div class="test-area">
+            <h3>🎯 预期结果</h3>
+            <p>如果功能正常，你应该能够：</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>✅ 自由拖动按钮到任何位置</li>
+                <li>✅ 按钮不会超出页面边界</li>
+                <li>✅ 拖动时鼠标指针变为抓取状态</li>
+                <li>✅ 释放后按钮停在当前位置</li>
+                <li>✅ 刷新页面后位置保持不变</li>
+                <li>✅ 点击按钮功能正常工作</li>
+            </ul>
+        </div>
+
+        <p style="text-align: center; color: #6c757d; margin-top: 40px;">
+            拖动功能让悬浮按钮更加灵活，你可以将它放在最适合的位置！
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>悬浮按钮调试测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #1890ff;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+        .error { background: #fff2f0; border: 1px solid #ffccc7; color: #ff4d4f; }
+        .info { background: #e6f7ff; border: 1px solid #91d5ff; color: #1890ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 悬浮按钮调试测试</h1>
+        
+        <div class="debug-info">
+            <h3>调试信息</h3>
+            <p>这个页面用于测试悬浮按钮的创建和显示。</p>
+            <p>请打开浏览器开发者工具的控制台查看调试信息。</p>
+        </div>
+
+        <div id="status-container">
+            <div class="status info">正在检查悬浮按钮状态...</div>
+        </div>
+
+        <div class="debug-info">
+            <h3>检查步骤</h3>
+            <ol>
+                <li>确保扩展已正确安装并启用</li>
+                <li>刷新此页面</li>
+                <li>打开开发者工具 (F12)</li>
+                <li>查看控制台输出</li>
+                <li>检查页面右侧是否有蓝色圆形按钮</li>
+            </ol>
+        </div>
+
+        <div class="debug-info">
+            <h3>预期结果</h3>
+            <ul>
+                <li>控制台应显示 "Content script 已加载"</li>
+                <li>控制台应显示 "悬浮按钮已创建"</li>
+                <li>页面右侧应显示蓝色圆形悬浮按钮</li>
+                <li>鼠标悬停按钮应显示 "发送到飞书" 提示</li>
+            </ul>
+        </div>
+
+        <button onclick="checkButton()" style="padding: 10px 20px; background: #1890ff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            检查悬浮按钮
+        </button>
+    </div>
+
+    <script>
+        function checkButton() {
+            const button = document.getElementById('feishu-floating-btn');
+            const statusContainer = document.getElementById('status-container');
+            
+            if (button) {
+                statusContainer.innerHTML = '<div class="status success">✅ 悬浮按钮存在！</div>';
+                console.log('手动检查：悬浮按钮存在', button);
+            } else {
+                statusContainer.innerHTML = '<div class="status error">❌ 悬浮按钮不存在</div>';
+                console.log('手动检查：悬浮按钮不存在');
+            }
+        }
+
+        // 页面加载完成后自动检查
+        window.addEventListener('load', () => {
+            setTimeout(checkButton, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错误修复测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #1890ff;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+        .error { background: #fff2f0; border: 1px solid #ffccc7; color: #ff4d4f; }
+        .info { background: #e6f7ff; border: 1px solid #91d5ff; color: #1890ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 错误修复测试页面</h1>
+        
+        <div class="test-section">
+            <h3>测试目的</h3>
+            <p>这个页面用于测试之前修复的 "parent.className.toLowerCase is not a function" 错误。</p>
+            <p>如果修复成功，页面应该正常显示悬浮按钮，并且不会在控制台出现错误。</p>
+        </div>
+
+        <div id="status-container">
+            <div class="status info">正在检查页面状态...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>检查步骤</h3>
+            <ol>
+                <li>确保扩展已正确安装并启用</li>
+                <li>刷新此页面</li>
+                <li>打开开发者工具 (F12)</li>
+                <li>查看控制台是否有错误信息</li>
+                <li>检查页面右侧是否有蓝色圆形按钮</li>
+                <li>尝试拖动按钮，测试拖动功能</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>预期结果</h3>
+            <ul>
+                <li>✅ 控制台没有 "toLowerCase is not a function" 错误</li>
+                <li>✅ 悬浮按钮正常显示</li>
+                <li>✅ 拖动功能正常工作</li>
+                <li>✅ 点击按钮功能正常</li>
+            </ul>
+        </div>
+
+        <button onclick="checkStatus()" style="padding: 10px 20px; background: #1890ff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            检查状态
+        </button>
+    </div>
+
+    <script>
+        function checkStatus() {
+            const button = document.getElementById('feishu-floating-btn');
+            const statusContainer = document.getElementById('status-container');
+            
+            if (button) {
+                statusContainer.innerHTML = '<div class="status success">✅ 悬浮按钮正常显示！</div>';
+                console.log('状态检查：悬浮按钮存在', button);
+                
+                // 测试拖动功能
+                if (button.classList.contains('dragging') === false) {
+                    console.log('拖动功能检查：正常');
+                }
+            } else {
+                statusContainer.innerHTML = '<div class="status error">❌ 悬浮按钮未显示</div>';
+                console.log('状态检查：悬浮按钮不存在');
+            }
+        }
+
+        // 页面加载完成后自动检查
+        window.addEventListener('load', () => {
+            setTimeout(checkStatus, 2000);
+        });
+
+        // 监听控制台错误
+        window.addEventListener('error', function(e) {
+            console.error('页面错误:', e.error);
+            const statusContainer = document.getElementById('status-container');
+            statusContainer.innerHTML = '<div class="status error">❌ 检测到页面错误，请查看控制台</div>';
+        });
+    </script>
+</body>
+</html>

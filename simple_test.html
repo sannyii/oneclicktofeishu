@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>简单测试</title>
+</head>
+<body>
+    <h1>简单测试页面</h1>
+    <p>如果你看到这个页面，说明页面加载正常。</p>
+    <p>请检查页面右侧是否有蓝色圆形悬浮按钮。</p>
+    
+    <script>
+        // 检查content script是否运行
+        console.log('页面脚本开始运行');
+        
+        // 等待一段时间后检查悬浮按钮
+        setTimeout(() => {
+            const button = document.getElementById('feishu-floating-btn');
+            if (button) {
+                console.log('✅ 找到悬浮按钮:', button);
+                document.body.innerHTML += '<p style="color: green;">✅ 悬浮按钮已创建！</p>';
+            } else {
+                console.log('❌ 未找到悬浮按钮');
+                document.body.innerHTML += '<p style="color: red;">❌ 悬浮按钮未创建</p>';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

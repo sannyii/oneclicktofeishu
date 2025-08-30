@@ -1,0 +1,27 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3370ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2860e1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆形 -->
+  <circle cx="64" cy="64" r="60" fill="url(#grad1)" stroke="#fff" stroke-width="4"/>
+  
+  <!-- 文档图标 -->
+  <rect x="32" y="24" width="48" height="64" rx="4" fill="#fff" opacity="0.9"/>
+  <rect x="36" y="32" width="32" height="2" fill="#3370ff"/>
+  <rect x="36" y="40" width="40" height="2" fill="#3370ff"/>
+  <rect x="36" y="48" width="36" height="2" fill="#3370ff"/>
+  <rect x="36" y="56" width="28" height="2" fill="#3370ff"/>
+  <rect x="36" y="64" width="40" height="2" fill="#3370ff"/>
+  <rect x="36" y="72" width="32" height="2" fill="#3370ff"/>
+  
+  <!-- 发送箭头 -->
+  <path d="M 80 64 L 96 64 M 88 56 L 96 64 L 88 72" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 飞书标志 -->
+  <circle cx="96" cy="96" r="16" fill="#00d6b9"/>
+  <text x="96" y="102" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="12" font-weight="bold">飞</text>
+</svg>

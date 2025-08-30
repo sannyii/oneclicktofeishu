@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>生成插件图标</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px;
+        }
+        .instructions {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chrome插件图标生成器</h1>
+    
+    <div class="instructions">
+        <h3>使用说明：</h3>
+        <ol>
+            <li>点击下方的"生成图标"按钮</li>
+            <li>右键点击生成的图标，选择"图片另存为"</li>
+            <li>分别保存为以下文件名：
+                <ul>
+                    <li>icon16.png (16x16像素)</li>
+                    <li>icon48.png (48x48像素)</li>
+                    <li>icon128.png (128x128像素)</li>
+                </ul>
+            </li>
+            <li>将保存的PNG文件放到项目的icons文件夹中</li>
+        </ol>
+    </div>
+    
+    <button onclick="generateIcons()">生成图标</button>
+    
+    <div id="icons"></div>
+    
+    <script>
+        function generateIcons() {
+            const sizes = [16, 48, 128];
+            const container = document.getElementById('icons');
+            container.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                // 创建渐变背景
+                const gradient = ctx.createLinearGradient(0, 0, size, size);
+                gradient.addColorStop(0, '#3370ff');
+                gradient.addColorStop(1, '#2860e1');
+                
+                // 绘制背景圆形
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // 绘制白色边框
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制文档图标
+                const docWidth = size * 0.4;
+                const docHeight = size * 0.5;
+                const docX = size * 0.25;
+                const docY = size * 0.2;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillRect(docX, docY, docWidth, docHeight);
+                
+                // 绘制文档线条
+                ctx.fillStyle = '#3370ff';
+                const lineHeight = size * 0.02;
+                const lineSpacing = size * 0.06;
+                const startY = docY + size * 0.1;
+                
+                for (let i = 0; i < 6; i++) {
+                    const lineWidth = size * (0.3 - i * 0.02);
+                    ctx.fillRect(docX + size * 0.05, startY + i * lineSpacing, lineWidth, lineHeight);
+                }
+                
+                // 绘制发送箭头
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = Math.max(1, size * 0.02);
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                
+                const arrowX = size * 0.65;
+                const arrowY = size * 0.5;
+                const arrowSize = size * 0.15;
+                
+                ctx.beginPath();
+                ctx.moveTo(arrowX, arrowY);
+                ctx.lineTo(arrowX + arrowSize, arrowY);
+                ctx.moveTo(arrowX + arrowSize - arrowSize * 0.1, arrowY - arrowSize * 0.1);
+                ctx.lineTo(arrowX + arrowSize, arrowY);
+                ctx.lineTo(arrowX + arrowSize - arrowSize * 0.1, arrowY + arrowSize * 0.1);
+                ctx.stroke();
+                
+                // 绘制飞书标志
+                if (size >= 48) {
+                    const feishuSize = size * 0.15;
+                    const feishuX = size * 0.75;
+                    const feishuY = size * 0.75;
+                    
+                    ctx.fillStyle = '#00d6b9';
+                    ctx.beginPath();
+                    ctx.arc(feishuX, feishuY, feishuSize, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    if (size >= 128) {
+                        ctx.fillStyle = '#fff';
+                        ctx.font = `bold ${size * 0.08}px Arial`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('飞', feishuX, feishuY);
+                    }
+                }
+                
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = `icon${size}.png`;
+                link.href = canvas.toDataURL();
+                
+                const div = document.createElement('div');
+                div.style.display = 'inline-block';
+                div.style.margin = '10px';
+                div.style.textAlign = 'center';
+                
+                div.appendChild(canvas);
+                div.appendChild(document.createElement('br'));
+                div.appendChild(link);
+                link.textContent = `下载 ${size}x${size}`;
+                link.style.display = 'inline-block';
+                link.style.marginTop = '5px';
+                link.style.padding = '5px 10px';
+                link.style.backgroundColor = '#3370ff';
+                link.style.color = 'white';
+                link.style.textDecoration = 'none';
+                link.style.borderRadius = '4px';
+                
+                container.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
