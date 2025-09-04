@@ -15,12 +15,11 @@
 
 ### 3. 配置API密钥
 
-#### 获取OpenAI API Key
-1. 访问 [OpenAI官网](https://platform.openai.com/)
-2. 注册或登录账户
-3. 进入 [API Keys页面](https://platform.openai.com/api-keys)
-4. 点击"Create new secret key"
-5. 复制生成的API Key（注意保存，页面关闭后无法再次查看）
+#### 获取API Key（OpenAI 或 DeepSeek）
+1. 访问 [OpenAI](https://platform.openai.com/) 或 [DeepSeek](https://platform.deepseek.com/)
+2. 注册或登录对应账户
+3. 进入各自的 API Key 管理页面
+4. 生成并复制API Key（注意保存，页面关闭后无法再次查看）
 
 #### 配置飞书机器人
 1. 在飞书中创建一个群组（如果还没有的话）
@@ -33,7 +32,7 @@
 
 ### 4. 插件配置
 1. 点击Chrome工具栏中的插件图标
-2. 在"OpenAI API Key"输入框中粘贴你的API Key
+2. 在"API Key"输入框中粘贴你的API Key
 3. 在"飞书机器人 Webhook URL"输入框中粘贴Webhook URL
 4. 在"AI模型选择"下拉列表中选择合适的模型（推荐GPT-5 Nano）
 5. 可选：在"系统提示词"文本框中输入自定义提示词
@@ -86,7 +85,7 @@
 
 ## 注意事项
 
-1. **API费用**：使用OpenAI API会产生费用，请确保账户有足够余额
+1. **API费用**：使用OpenAI或DeepSeek API会产生费用，请确保账户有足够余额
 2. **网络连接**：需要稳定的网络连接来调用API
 3. **页面类型**：最适合处理文章、新闻、博客等文本内容丰富的页面
 
@@ -98,7 +97,7 @@
 - 重新加载插件
 
 ### API调用失败
-- 检查OpenAI API Key是否正确
+- 检查API Key是否正确
 - 确认账户余额充足
 - 检查网络连接
 

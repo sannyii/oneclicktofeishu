@@ -6,7 +6,7 @@
 
 - 🚀 一键操作：点击插件图标即可处理当前页面
 - 🎯 悬浮按钮：页面右侧悬浮按钮，无需打开插件弹窗，支持自由拖动
-- 🤖 AI总结：使用OpenAI API智能总结页面内容，支持多种模型选择
+- 🤖 AI总结：使用OpenAI或DeepSeek API智能总结页面内容，支持多种模型选择
 - 📝 结构化输出：生成标题、要点、总结的格式
 - 📝 纯文本输出：专注于文本内容总结，避免图片发送问题
 - 💬 飞书集成：直接发送到飞书群
@@ -31,7 +31,7 @@
 
 ### 3. 配置API密钥
 1. 点击浏览器工具栏中的插件图标
-2. 输入OpenAI API Key
+2. 输入API Key（OpenAI或DeepSeek）
 3. 输入飞书机器人Webhook URL
 4. 选择AI模型（推荐GPT-4o Mini）
 5. 可选：输入自定义系统提示词
@@ -54,12 +54,11 @@
 
 ## 配置说明
 
-### OpenAI API Key
-- 访问 [OpenAI官网](https://platform.openai.com/api-keys) 获取API Key
-- 需要有效的OpenAI账户和余额
-- 支持GPT-4o、GPT-4o Mini、GPT-3.5 Turbo等模型
-- **推荐**：GPT-5 Nano是最新的高效模型，支持多种任务
-- **备选**：GPT-4o Mini、GPT-4o等模型也表现优秀
+### API Key
+- 支持 [OpenAI](https://platform.openai.com/api-keys) 或 [DeepSeek](https://platform.deepseek.com/) 提供的API Key
+- 需要有效的对应账户和余额
+- OpenAI支持GPT-4o、GPT-4o Mini、GPT-3.5 Turbo等模型；DeepSeek支持DeepSeek Chat、DeepSeek Coder等模型
+- **推荐**：GPT-5 Nano或DeepSeek Chat等高效模型
 
 ### 飞书机器人配置
 1. 在飞书中创建机器人
@@ -105,7 +104,7 @@ oneclicktofeishu/
 - **Manifest V3**: 使用最新的Chrome扩展API
 - **Content Script**: 提取页面内容 + 悬浮按钮UI
 - **Background Script**: 处理API调用和消息发送
-- **OpenAI API**: 支持多种模型进行内容总结
+- **AI API**: 支持OpenAI和DeepSeek等多种模型进行内容总结
 - **飞书API**: 使用Webhook发送消息
 - **悬浮按钮**: 固定在页面右侧，提供便捷的一键操作
 
@@ -119,7 +118,7 @@ oneclicktofeishu/
 
 ## 注意事项
 
-1. 确保OpenAI API Key有效且有足够余额
+1. 确保API Key有效且有足够余额
 2. 飞书机器人需要有发送消息的权限
 3. 某些网站可能因为CSP策略无法正常提取内容
 
@@ -131,13 +130,13 @@ oneclicktofeishu/
    - 刷新页面后重试
    - 确保页面完全加载
 
-2. **"OpenAI API错误"**
+2. **"AI API错误"**
    - 检查API Key是否正确
    - 确认账户余额充足
    - 检查模型是否可用
-   - 如果GPT-5 Nano不可用，会自动建议使用GPT-4o Mini
+   - 如果GPT-5 Nano或DeepSeek Chat不可用，会自动提供替代建议
 
-3. **"内容违反OpenAI使用政策"**
+3. **"内容违反API使用政策"**
    - 页面内容可能包含敏感词汇
    - 尝试不同的网页内容
    - 检查自定义提示词是否包含敏感指令
@@ -162,7 +161,7 @@ oneclicktofeishu/
    - 某些网站可能因为安全策略阻止悬浮按钮显示
 
 8. **悬浮按钮点击无响应**
-   - 检查是否已配置OpenAI API Key和飞书Webhook
+   - 检查是否已配置API Key和飞书Webhook
    - 查看浏览器控制台是否有错误信息
    - 确保网络连接正常
 
