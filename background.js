@@ -50,18 +50,39 @@ async function handleProcessAndSend(tabId, config) {
 // 从页面提取内容
 async function extractPageContent(tabId) {
   return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tabId, { action: 'extractContent' }, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error('无法访问页面内容，请刷新页面后重试'));
-        return;
-      }
-      
-      if (response && response.success) {
-        resolve(response.data);
-      } else {
-        reject(new Error(response?.error || '提取页面内容失败'));
-      }
-    });
+    function sendMessage(needInjection) {
+      chrome.tabs.sendMessage(tabId, { action: 'extractContent' }, (response) => {
+        if (chrome.runtime.lastError) {
+          // 如果没有内容脚本响应，尝试重新注入后再试一次
+          if (needInjection) {
+            console.log('未检测到内容脚本，尝试重新注入:', chrome.runtime.lastError);
+            chrome.scripting.executeScript({
+              target: { tabId },
+              files: ['content.js']
+            }, () => {
+              if (chrome.runtime.lastError) {
+                reject(new Error('无法访问页面内容，请刷新页面后重试'));
+              } else {
+                // 注入成功后再次尝试发送消息
+                sendMessage(false);
+              }
+            });
+          } else {
+            reject(new Error('无法访问页面内容，请刷新页面后重试'));
+          }
+          return;
+        }
+
+        if (response && response.success) {
+          resolve(response.data);
+        } else {
+          reject(new Error(response?.error || '提取页面内容失败'));
+        }
+      });
+    }
+
+    // 初次尝试，如果失败则注入content脚本后再试一次
+    sendMessage(true);
   });
 }
 
