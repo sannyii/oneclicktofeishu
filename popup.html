@@ -112,10 +112,18 @@
   <div class="header">
     <h1>一键发送到飞书</h1>
   </div>
-  
+
   <div class="config-section">
-    <h3>OpenAI API Key</h3>
-    <input type="password" id="openaiKey" placeholder="请输入OpenAI API Key">
+    <h3>API服务商</h3>
+    <select id="apiProvider">
+      <option value="openai">OpenAI</option>
+      <option value="deepseek">DeepSeek</option>
+    </select>
+  </div>
+
+  <div class="config-section">
+    <h3>API Key</h3>
+    <input type="password" id="openaiKey" placeholder="请输入API Key">
   </div>
   
   <div class="config-section">
@@ -137,6 +145,8 @@
       <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
       <option value="gpt-4-turbo">GPT-4 Turbo</option>
       <option value="gpt-4">GPT-4</option>
+      <option value="deepseek-chat">DeepSeek Chat</option>
+      <option value="deepseek-coder">DeepSeek Coder</option>
     </select>
   </div>
   

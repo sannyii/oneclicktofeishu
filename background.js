@@ -34,8 +34,8 @@ async function handleProcessAndSend(tabId, config) {
     // 2. 过滤和清理内容
     const cleanedPageData = filterAndCleanContent(pageData);
     
-    // 3. 使用OpenAI总结内容
-    const summary = await summarizeWithOpenAI(cleanedPageData, config.openaiKey, config.openaiModel, config.systemPrompt);
+    // 3. 使用AI总结内容
+    const summary = await summarizeWithAI(cleanedPageData, config.openaiKey, config.openaiModel, config.systemPrompt, config.apiProvider);
     
     // 4. 发送到飞书
     await sendToFeishu(summary, cleanedPageData, config);
@@ -104,12 +104,16 @@ function filterAndCleanContent(pageData) {
   };
 }
 
-// 使用OpenAI总结内容
-async function summarizeWithOpenAI(pageData, apiKey, model = 'gpt-5-nano', systemPrompt = '') {
+// 使用AI总结内容（支持OpenAI和DeepSeek）
+async function summarizeWithAI(pageData, apiKey, model = 'gpt-5-nano', systemPrompt = '', apiProvider = 'openai') {
   // 调试信息
   console.log('使用的模型:', model);
   console.log('系统提示词参数:', systemPrompt);
   console.log('系统提示词是否为空:', !systemPrompt.trim());
+  console.log('使用的API服务商:', apiProvider);
+
+  const providerName = apiProvider === 'deepseek' ? 'DeepSeek' : 'OpenAI';
+  const baseUrl = apiProvider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
   
   // 根据模型选择系统提示词
   let defaultSystemPrompt;
@@ -217,7 +221,7 @@ Please analyze and summarize according to the requirements.`;
   if (model === 'gpt-5-nano') {
     console.log('使用GPT-5-nano模型，跳过模型列表验证（可能需要特殊访问权限）');
   } else {
-    const modelValidation = await validateModel(apiKey, model);
+    const modelValidation = await validateModel(apiKey, model, apiProvider);
     if (!modelValidation.available) {
       throw new Error(`模型 ${model} 不可用: ${modelValidation.reason}`);
     }
@@ -229,7 +233,7 @@ Please analyze and summarize according to the requirements.`;
   
   while (retryCount < maxRetries) {
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -252,12 +256,12 @@ Please analyze and summarize according to the requirements.`;
         
         // 检查是否是内容政策违规错误
         if (errorMessage.includes('usage policy') || errorMessage.includes('content policy')) {
-          throw new Error(`内容违反OpenAI使用政策，请尝试不同的内容或修改提示词。错误详情: ${errorMessage}`);
+          throw new Error(`内容违反${providerName}使用政策，请尝试不同的内容或修改提示词。错误详情: ${errorMessage}`);
         }
         
         // 检查是否是API密钥错误
         if (errorMessage.includes('invalid_api_key') || errorMessage.includes('authentication')) {
-          throw new Error('OpenAI API密钥无效，请检查密钥是否正确');
+          throw new Error(`${providerName} API密钥无效，请检查密钥是否正确`);
         }
         
         // 检查是否是模型错误
@@ -277,7 +281,7 @@ Please analyze and summarize according to the requirements.`;
         }
         
         // 其他错误
-        throw new Error(`OpenAI API错误: ${errorMessage}`);
+        throw new Error(`${providerName} API错误: ${errorMessage}`);
       }
 
       const data = await response.json();
@@ -298,9 +302,10 @@ Please analyze and summarize according to the requirements.`;
 }
 
 // 验证模型是否可用
-async function validateModel(apiKey, model) {
+async function validateModel(apiKey, model, apiProvider = 'openai') {
   try {
-    const response = await fetch('https://api.openai.com/v1/models', {
+    const baseUrl = apiProvider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
+    const response = await fetch(`${baseUrl}/models`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`
@@ -360,7 +365,7 @@ async function validateModel(apiKey, model) {
 
 // 发送到飞书
 async function sendToFeishu(summary, pageData, config) {
-  // 解析OpenAI返回的总结内容
+  // 解析AI返回的总结内容
   const parsedSummary = parseSummary(summary);
   
   // 构建飞书消息
@@ -386,7 +391,7 @@ async function sendToFeishu(summary, pageData, config) {
   }
 }
 
-// 解析OpenAI返回的总结内容
+// 解析AI返回的总结内容
 function parseSummary(summary) {
   const lines = summary.split('\n');
   let title = '';

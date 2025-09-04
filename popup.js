@@ -3,17 +3,19 @@ document.addEventListener('DOMContentLoaded', function() {
   const feishuWebhookInput = document.getElementById('feishuWebhook');
   const feishuChatIdInput = document.getElementById('feishuChatId');
   const openaiModelSelect = document.getElementById('openaiModel');
+  const apiProviderSelect = document.getElementById('apiProvider');
   const systemPromptTextarea = document.getElementById('systemPrompt');
   const sendButton = document.getElementById('sendButton');
   const statusDiv = document.getElementById('status');
 
   // 加载保存的配置
-  chrome.storage.sync.get(['openaiKey', 'feishuWebhook', 'feishuChatId', 'openaiModel', 'systemPrompt'], function(result) {
+  chrome.storage.sync.get(['openaiKey', 'feishuWebhook', 'feishuChatId', 'openaiModel', 'systemPrompt', 'apiProvider'], function(result) {
     if (result.openaiKey) openaiKeyInput.value = result.openaiKey;
     if (result.feishuWebhook) feishuWebhookInput.value = result.feishuWebhook;
     if (result.feishuChatId) feishuChatIdInput.value = result.feishuChatId;
     if (result.openaiModel) openaiModelSelect.value = result.openaiModel;
     if (result.systemPrompt) systemPromptTextarea.value = result.systemPrompt;
+    if (result.apiProvider) apiProviderSelect.value = result.apiProvider;
   });
 
   // 保存配置
@@ -23,7 +25,8 @@ document.addEventListener('DOMContentLoaded', function() {
       feishuWebhook: feishuWebhookInput.value,
       feishuChatId: feishuChatIdInput.value,
       openaiModel: openaiModelSelect.value,
-      systemPrompt: systemPromptTextarea.value
+      systemPrompt: systemPromptTextarea.value,
+      apiProvider: apiProviderSelect.value
     });
   }
 
@@ -45,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const feishuWebhook = feishuWebhookInput.value.trim();
     const feishuChatId = feishuChatIdInput.value.trim();
     const openaiModel = openaiModelSelect.value;
+    const apiProvider = apiProviderSelect.value;
     const systemPrompt = systemPromptTextarea.value.trim();
     
     // 调试信息
@@ -52,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('系统提示词是否为空:', !systemPrompt);
 
     if (!openaiKey) {
-      showStatus('请输入OpenAI API Key', 'error');
+      showStatus('请输入API Key', 'error');
       return;
     }
 
@@ -81,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
           feishuWebhook,
           feishuChatId,
           openaiModel,
+          apiProvider,
           systemPrompt
         }
       });
@@ -102,5 +107,6 @@ document.addEventListener('DOMContentLoaded', function() {
   feishuWebhookInput.addEventListener('input', saveConfig);
   feishuChatIdInput.addEventListener('input', saveConfig);
   openaiModelSelect.addEventListener('change', saveConfig);
+  apiProviderSelect.addEventListener('change', saveConfig);
   systemPromptTextarea.addEventListener('input', saveConfig);
 });
