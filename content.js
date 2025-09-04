@@ -345,7 +345,7 @@ async function handleFloatingButtonClick() {
   try {
     // 获取配置
     const config = await getStoredConfig();
-    
+
     if (!config.openaiKey) {
       showNotification('请先在扩展设置中配置API Key', 'error');
       return;
@@ -381,14 +381,15 @@ async function handleFloatingButtonClick() {
 // 获取存储的配置
 function getStoredConfig() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(['openaiKey', 'feishuWebhook', 'feishuChatId', 'openaiModel', 'systemPrompt', 'apiProvider'], function(result) {
+    chrome.storage.sync.get(['openaiKey', 'deepseekKey', 'feishuWebhook', 'feishuChatId', 'openaiModel', 'systemPrompt', 'apiProvider'], function(result) {
+      const provider = result.apiProvider || 'openai';
       resolve({
-        openaiKey: result.openaiKey || '',
+        openaiKey: provider === 'deepseek' ? (result.deepseekKey || '') : (result.openaiKey || ''),
         feishuWebhook: result.feishuWebhook || '',
         feishuChatId: result.feishuChatId || '',
         openaiModel: result.openaiModel || 'gpt-5-nano',
         systemPrompt: result.systemPrompt || '',
-        apiProvider: result.apiProvider || 'openai'
+        apiProvider: provider
       });
     });
   });
