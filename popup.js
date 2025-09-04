@@ -9,25 +9,35 @@ document.addEventListener('DOMContentLoaded', function() {
   const statusDiv = document.getElementById('status');
 
   // 加载保存的配置
-  chrome.storage.sync.get(['openaiKey', 'feishuWebhook', 'feishuChatId', 'openaiModel', 'systemPrompt', 'apiProvider'], function(result) {
-    if (result.openaiKey) openaiKeyInput.value = result.openaiKey;
+  chrome.storage.sync.get(['openaiKey', 'deepseekKey', 'feishuWebhook', 'feishuChatId', 'openaiModel', 'systemPrompt', 'apiProvider'], function(result) {
     if (result.feishuWebhook) feishuWebhookInput.value = result.feishuWebhook;
     if (result.feishuChatId) feishuChatIdInput.value = result.feishuChatId;
     if (result.openaiModel) openaiModelSelect.value = result.openaiModel;
     if (result.systemPrompt) systemPromptTextarea.value = result.systemPrompt;
-    if (result.apiProvider) apiProviderSelect.value = result.apiProvider;
+
+    const provider = result.apiProvider || 'openai';
+    apiProviderSelect.value = provider;
+    openaiKeyInput.value = provider === 'deepseek' ? (result.deepseekKey || '') : (result.openaiKey || '');
   });
 
   // 保存配置
   function saveConfig() {
-    chrome.storage.sync.set({
-      openaiKey: openaiKeyInput.value,
+    const provider = apiProviderSelect.value;
+    const data = {
       feishuWebhook: feishuWebhookInput.value,
       feishuChatId: feishuChatIdInput.value,
       openaiModel: openaiModelSelect.value,
       systemPrompt: systemPromptTextarea.value,
-      apiProvider: apiProviderSelect.value
-    });
+      apiProvider: provider
+    };
+
+    if (provider === 'deepseek') {
+      data.deepseekKey = openaiKeyInput.value;
+    } else {
+      data.openaiKey = openaiKeyInput.value;
+    }
+
+    chrome.storage.sync.set(data);
   }
 
   // 显示状态信息
@@ -107,6 +117,12 @@ document.addEventListener('DOMContentLoaded', function() {
   feishuWebhookInput.addEventListener('input', saveConfig);
   feishuChatIdInput.addEventListener('input', saveConfig);
   openaiModelSelect.addEventListener('change', saveConfig);
-  apiProviderSelect.addEventListener('change', saveConfig);
   systemPromptTextarea.addEventListener('input', saveConfig);
+
+  apiProviderSelect.addEventListener('change', function() {
+    chrome.storage.sync.get(['openaiKey', 'deepseekKey'], function(result) {
+      openaiKeyInput.value = apiProviderSelect.value === 'deepseek' ? (result.deepseekKey || '') : (result.openaiKey || '');
+      saveConfig();
+    });
+  });
 });
