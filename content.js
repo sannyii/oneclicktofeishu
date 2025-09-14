@@ -203,7 +203,13 @@ function createFloatingButton() {
 
   // 获取保存的位置，如果没有则使用默认位置
   chrome.storage.sync.get(['buttonPosition'], function(result) {
-    const position = result.buttonPosition || { x: 20, y: 50 }; // 默认右侧中间
+    // 检查保存的位置是否合理，如果不合理则重置为默认位置
+    let position = result.buttonPosition;
+    if (!position || position.y < 10 || position.y > 95) {
+      position = { x: 20, y: 85 }; // 默认页面底部
+      console.log('重置按钮位置为默认值:', position);
+    }
+    console.log('使用按钮位置:', position);
     
     const button = document.createElement('div');
     button.id = 'feishu-floating-btn';
@@ -227,12 +233,14 @@ function createFloatingButton() {
         border-radius: 50%;
         box-shadow: 0 4px 12px rgba(51, 112, 255, 0.3);
         cursor: pointer;
-        z-index: 10000;
+        z-index: 999999;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
         user-select: none;
+        pointer-events: auto;
+        border: 2px solid #fff;
       }
       
       #feishu-floating-btn:hover {
@@ -317,13 +325,31 @@ function createFloatingButton() {
     document.body.appendChild(button);
     
     // 添加点击事件
-    button.addEventListener('click', handleFloatingButtonClick);
+    button.addEventListener('click', function(e) {
+      console.log('悬浮按钮被点击了！', e);
+      handleFloatingButtonClick();
+    });
+    
+    // 添加鼠标事件调试
+    button.addEventListener('mouseenter', function() {
+      console.log('鼠标进入悬浮按钮');
+    });
+    
+    button.addEventListener('mouseleave', function() {
+      console.log('鼠标离开悬浮按钮');
+    });
     
     // 添加拖动功能
     addDragFunctionality(button);
     
     console.log('悬浮按钮已创建，添加到DOM');
     console.log('按钮元素:', button);
+    console.log('按钮位置:', { x: position.x, y: position.y });
+    console.log('按钮计算位置:', {
+      right: position.x + 'px',
+      top: position.y + '%',
+      transform: 'translateY(-50%)'
+    });
     console.log('按钮样式:', button.style.cssText);
   });
 }
@@ -461,9 +487,27 @@ function showNotification(message, type = 'info') {
   }, 3000);
 }
 
+// 添加强制重置按钮位置的功能（用于调试）
+function resetButtonPosition() {
+  chrome.storage.sync.remove(['buttonPosition'], function() {
+    console.log('按钮位置已重置');
+    // 移除现有按钮
+    const existingButton = document.getElementById('feishu-floating-btn');
+    if (existingButton) {
+      existingButton.remove();
+    }
+    // 重新创建按钮
+    createFloatingButton();
+  });
+}
+
+// 将重置函数暴露到全局，方便调试
+window.resetFeishuButton = resetButtonPosition;
+
 // 页面加载完成后创建悬浮按钮
 console.log('Content script 已加载，当前页面状态:', document.readyState);
 console.log('当前页面URL:', window.location.href);
+console.log('如需重置按钮位置，请在控制台运行: resetFeishuButton()');
 
 // 立即尝试创建按钮
 createFloatingButton();

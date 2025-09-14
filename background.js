@@ -37,8 +37,11 @@ async function handleProcessAndSend(tabId, config) {
     // 3. 使用AI总结内容
     const summary = await summarizeWithAI(cleanedPageData, config.openaiKey, config.openaiModel, config.systemPrompt, config.apiProvider);
     
-    // 4. 发送到飞书
-    await sendToFeishu(summary, cleanedPageData, config);
+    // 4. 生成氛围感标题
+    const atmosphereTitles = await generateAtmosphereTitles(cleanedPageData, config.openaiKey, config.openaiModel, config.apiProvider);
+    
+    // 5. 发送到飞书
+    await sendToFeishu(summary, atmosphereTitles, cleanedPageData, config);
     
     return { success: true };
   } catch (error) {
@@ -322,6 +325,107 @@ Please analyze and summarize according to the requirements.`;
   }
 }
 
+// 生成氛围感标题
+async function generateAtmosphereTitles(pageData, apiKey, model = 'gpt-5-nano', apiProvider = 'openai') {
+  const providerName = apiProvider === 'deepseek' ? 'DeepSeek' : 'OpenAI';
+  const baseUrl = apiProvider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
+  
+  // 氛围感标题生成提示词
+  const atmospherePrompt = `根据所给的文本，给出具备氛围感的标题。一些帮助理解的点：
+1 没爆点的就只能在氛围上下手了，读者会不会买账其实也不好说。
+2 就得习惯把自己变成一个无情的素材组装机器。
+要求起的标题具备氛围感，能吸引用户点击，并且和内容关联度高。
+举一些标题例子，供参考：
+————————————开始：以下为标题例子参考——————————————————
+硅谷今夜集体失眠！互联网女皇340页AI报告猛料刷屏，大佬熬夜头秃。
+斯坦福华人天团意外爆冷！AI用纯CUDA-C编内核，竟干翻PyTorch？
+AI裁员这一刀，终于砍到他们身上！外媒高层一锅端，9年老记者血泪控诉
+第二次Sora时刻来了！全球首款实时摄像头诞生，真人感拉满颠覆全行业
+刚刚，北大校友Lilian Weng自曝公司首个产品？一篇论文未发，估值却已90亿
+全球第一AI科学家天团，首战封神！2.5个月找到治盲新药，医学圈震撼
+Veo 3逼真脱口秀爆火全网，网友：彻底超越恐怖谷！Sora已被完爆
+星际之门内部惊人曝光：40万块GPU爆铺！奥特曼千亿豪赌险把电网干崩
+AI编程新王Claude 4，深夜震撼登基！连续编码7小时，开发者惊掉下巴
+震撼全网，AlphaEvolve矩阵乘法突破被证明为真！开发者用代码证实
+史诗时刻！AlphaGo神之一手突现，谷歌AI颠覆科研极限？
+微软老员工48岁生日被裁，妻子发帖怒斥算法裁人！全球大血洗6000人
+薪酬大曝光！北美顶尖名校ML博士，5篇顶会一作，offer竟只有35万刀？
+OpenAI命悬一线，微软连夜割肉！跪求OpenAI千万别分手
+AI引爆全球失业潮，美国大学生毕业即失业！全球大厂联手裁员上万
+全球首个AI科学家天团出道！007做实验碾压人类博士，生化环材圈巨震
+清华出手，挖走美国顶尖AI研究者！前DeepMind大佬被抄底，美国人才倒流中国
+毛骨悚然！o3精准破译照片位置，只靠几行Python代码？人类在AI面前已裸奔
+加州AI博士一夜失身份！谷歌OpenAI学者掀「离美潮」，38万岗位消失AI优势崩塌
+LeCun被痛批：你把Meta搞砸了！烧掉千亿算力，自曝折腾20年彻底失败
+MIT惊人神作：AI独立提出哈密顿物理！0先验知识，一天破译人类百年理论
+————————————结束：以上为标题例子参考——————————————————————————
+
+输出:
+直接输出2个氛围感标题，用逗号分隔，不要换行，不要分析，不要补充说明`;
+
+  // 截取页面内容的前2000字符，确保API调用不会过大
+  const contentPreview = pageData.content.length > 2000 ? 
+    pageData.content.substring(0, 2000) + '...' : 
+    pageData.content;
+
+  const messages = [
+    {
+      role: 'system',
+      content: atmospherePrompt
+    },
+    {
+      role: 'user',
+      content: `请为以下网页内容生成2个氛围感标题：
+
+原始标题：${pageData.title}
+网页URL：${pageData.url}
+内容：${contentPreview}`
+    }
+  ];
+
+  try {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: messages,
+        max_completion_tokens: 200,
+        temperature: 1.0,
+        top_p: 1.0,
+        frequency_penalty: 0.0,
+        presence_penalty: 0.0
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage = errorData.error?.message || response.statusText;
+      throw new Error(`${providerName} API错误: ${errorMessage}`);
+    }
+
+    const data = await response.json();
+    const titlesText = data.choices[0].message.content.trim();
+    
+    // 解析返回的标题（用逗号分隔，去掉换行）
+    const titles = titlesText.split(',')
+      .map(title => title.trim())
+      .filter(title => title.length > 0)
+      .slice(0, 2); // 只取前2个标题
+    
+    console.log('生成的氛围感标题:', titles);
+    return titles;
+    
+  } catch (error) {
+    console.error('生成氛围感标题失败:', error);
+    // 如果生成失败，返回原始页面标题作为备选
+    return [pageData.title, pageData.title];
+  }
+}
+
 // 验证模型是否可用
 async function validateModel(apiKey, model, apiProvider = 'openai') {
   try {
@@ -385,12 +489,12 @@ async function validateModel(apiKey, model, apiProvider = 'openai') {
 }
 
 // 发送到飞书
-async function sendToFeishu(summary, pageData, config) {
+async function sendToFeishu(summary, atmosphereTitles, pageData, config) {
   // 解析AI返回的总结内容
   const parsedSummary = parseSummary(summary);
   
   // 构建飞书消息
-  const message = buildFeishuMessage(parsedSummary, pageData);
+  const message = buildFeishuMessage(parsedSummary, atmosphereTitles, pageData);
   
   // 发送到飞书
   const response = await fetch(config.feishuWebhook, {
@@ -447,34 +551,48 @@ function parseSummary(summary) {
 }
 
 // 构建飞书消息
-function buildFeishuMessage(summary, pageData) {
+function buildFeishuMessage(summary, atmosphereTitles, pageData) {
+  // 使用第一个氛围感标题作为主标题
+  const mainTitle = atmosphereTitles && atmosphereTitles.length > 0 ? atmosphereTitles[0] : summary.title;
+  
   const message = {
     msg_type: 'post',
     content: {
       post: {
         zh_cn: {
-          title: summary.title,
+          title: mainTitle,
           content: []
         }
       }
     }
   };
 
-  // 添加标题
+  // 添加主标题
   message.content.post.zh_cn.content.push([
     {
       tag: 'text',
-      text: summary.title,
+      text: mainTitle,
       un_escape: true
     }
   ]);
+  
+  // 如果有第二个氛围感标题，也添加到内容中
+  if (atmosphereTitles && atmosphereTitles.length > 1) {
+    message.content.post.zh_cn.content.push([
+      {
+        tag: 'text',
+        text: `\n🎯 备选标题：${atmosphereTitles[1]}`,
+        un_escape: true
+      }
+    ]);
+  }
 
   // 添加要点
   if (summary.highlights.length > 0) {
     message.content.post.zh_cn.content.push([
       {
         tag: 'text',
-        text: '\n\n📌 要点：',
+        text: '\n📌 要点：',
         un_escape: true
       }
     ]);
@@ -495,7 +613,7 @@ function buildFeishuMessage(summary, pageData) {
     message.content.post.zh_cn.content.push([
       {
         tag: 'text',
-        text: `\n\n📝 总结：\n${summary.content}`,
+        text: `\n📝 总结：${summary.content}`,
         un_escape: true
       }
     ]);
@@ -505,7 +623,7 @@ function buildFeishuMessage(summary, pageData) {
   message.content.post.zh_cn.content.push([
     {
       tag: 'text',
-      text: `\n\n🔗 原文链接：${pageData.url}`,
+      text: `\n🔗 原文链接：${pageData.url}`,
       un_escape: true
     }
   ]);
