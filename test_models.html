@@ -75,7 +75,15 @@
         <input type="password" id="apiKey" placeholder="请输入API Key" style="width: 300px;">
         <button onclick="testModels()">测试所有模型</button>
         <button onclick="testSingleModel()">测试单个模型</button>
-        <input type="text" id="singleModel" placeholder="输入模型名称，如: gpt-4o-mini" style="width: 200px;">
+        <select id="modelSelect" style="width: 200px;" onchange="syncModelSelection(this.value)">
+            <option value="">选择预设模型</option>
+            <option value="gpt-5-mini">GPT-5 Mini</option>
+            <option value="gpt-5">GPT-5</option>
+            <option value="gpt-5-nano">GPT-5 Nano</option>
+            <option value="gpt-4o-mini">GPT-4o Mini</option>
+            <option value="gpt-4o">GPT-4o</option>
+        </select>
+        <input type="text" id="singleModel" placeholder="输入模型名称，如: gpt-4o-mini" style="width: 200px;" oninput="syncModelSelection(this.value)">
     </div>
     
     <div class="test-section">
@@ -86,24 +94,33 @@
     <div class="test-section">
         <h2>测试说明</h2>
         <ul>
-            <li><strong>GPT-5 Nano</strong>: 最新高效模型，推荐使用</li>
+            <li><strong>GPT-5 Mini</strong>: 最新高效模型，推荐使用</li>
+            <li><strong>GPT-5</strong>: 高性能旗舰模型，适合高要求场景</li>
+            <li><strong>GPT-5 Nano</strong>: 轻量高效，成本友好</li>
             <li><strong>GPT-4o Mini</strong>: 性价比高，功能强大</li>
             <li><strong>GPT-4o</strong>: 功能全面，性能优秀</li>
-            <li><strong>GPT-3.5 Turbo</strong>: 稳定可靠，价格便宜</li>
-            <li><strong>GPT-4 Turbo</strong>: 功能强大，适合复杂任务</li>
         </ul>
     </div>
 
     <script>
         const models = [
+            'gpt-5-mini',
+            'gpt-5',
             'gpt-5-nano',
             'gpt-4o-mini',
-            'gpt-4o', 
-            'gpt-3.5-turbo',
-            'gpt-4-turbo',
-            'gpt-4',
-            'gpt-5-min'
+            'gpt-4o'
         ];
+
+        function syncModelSelection(value) {
+            const dropdown = document.getElementById('modelSelect');
+            const input = document.getElementById('singleModel');
+
+            if (document.activeElement === dropdown) {
+                input.value = value;
+            } else if (document.activeElement === input) {
+                dropdown.value = models.includes(value) ? value : '';
+            }
+        }
 
         async function testModels() {
             const apiKey = document.getElementById('apiKey').value.trim();
@@ -174,14 +191,15 @@
                         results += `❌ 模型不在可用列表中\n`;
                         
                         // 建议替代模型
-                        const alternatives = {
-                            'gpt-5-min': ['gpt-5-nano', 'gpt-4o-mini', 'gpt-4o'],
-                            'gpt-5-nano': ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
-                            'gpt-4o-mini': ['gpt-5-nano', 'gpt-4o', 'gpt-3.5-turbo'],
-                            'gpt-4o': ['gpt-5-nano', 'gpt-4o-mini', 'gpt-3.5-turbo']
-                        };
+                    const alternatives = {
+                        'gpt-5-mini': ['gpt-5', 'gpt-5-nano', 'gpt-4o-mini'],
+                        'gpt-5': ['gpt-5-mini', 'gpt-5-nano', 'gpt-4o'],
+                        'gpt-5-nano': ['gpt-5-mini', 'gpt-5', 'gpt-4o-mini'],
+                        'gpt-4o-mini': ['gpt-5-mini', 'gpt-5-nano', 'gpt-4o'],
+                        'gpt-4o': ['gpt-5-mini', 'gpt-5']
+                    };
                         
-                        const modelAlternatives = alternatives[model] || ['gpt-5-nano', 'gpt-4o-mini'];
+                        const modelAlternatives = alternatives[model] || ['gpt-5-mini', 'gpt-4o-mini'];
                         const availableAlternatives = modelAlternatives.filter(alt => availableModels.includes(alt));
                         
                         if (availableAlternatives.length > 0) {
@@ -200,7 +218,9 @@
 
         async function testSingleModel() {
             const apiKey = document.getElementById('apiKey').value.trim();
-            const model = document.getElementById('singleModel').value.trim();
+            const dropdownValue = document.getElementById('modelSelect').value.trim();
+            const modelInputValue = document.getElementById('singleModel').value.trim();
+            const model = modelInputValue || dropdownValue;
             
             if (!apiKey) {
                 alert('请输入API密钥');

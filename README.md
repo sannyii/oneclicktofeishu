@@ -11,7 +11,7 @@
 - 📝 纯文本输出：专注于文本内容总结，避免图片发送问题
 - 💬 飞书集成：直接发送到飞书群
 - ⚙️ 配置保存：自动保存API配置信息，支持分别保存OpenAI和DeepSeek的API Key
-- 🎛️ 模型选择：支持GPT-5、GPT-4o、GPT-3.5等多种模型
+- 🎛️ 模型选择：支持GPT-5、GPT-5 Mini、GPT-5 Nano、GPT-4o Mini、GPT-4o
 - 📝 自定义提示词：可自定义系统提示词来指导AI行为
 - 🛡️ 内容过滤：自动过滤敏感内容，避免违反API使用政策
 - 🔄 重试机制：网络错误时自动重试，提高成功率
@@ -57,8 +57,8 @@
 ### API Key
 - 支持 [OpenAI](https://platform.openai.com/api-keys) 或 [DeepSeek](https://platform.deepseek.com/) 提供的API Key
 - 需要有效的对应账户和余额
-- OpenAI支持GPT-4o、GPT-4o Mini、GPT-3.5 Turbo等模型；DeepSeek支持DeepSeek Chat、DeepSeek Coder等模型
-- **推荐**：GPT-5 Nano或DeepSeek Chat等高效模型
+- OpenAI支持GPT-5、GPT-5 Mini、GPT-5 Nano、GPT-4o Mini、GPT-4o等模型
+- **推荐**：GPT-5 Mini，兼顾质量与速度；也可根据需求选择 GPT-5（旗舰）或 GPT-5 Nano（更高性价比）
 - 插件会分别保存不同服务商的API Key，切换时无需重新输入
 
 ### 飞书机器人配置
@@ -71,17 +71,17 @@
 插件会生成以下格式的内容发送到飞书：
 
 ```
-标题：[页面标题]
+标题1：[氛围感标题一]
+标题2：[氛围感标题二]
 
-📌 要点：
-• [要点1]
-• [要点2]
-• [要点3]
+导读：[概括全文的导读段落]
 
-📝 总结：
-[200字以内的内容总结]
+要点：
+1. [要点1]
+2. [要点2]
+3. [要点3]
 
-🔗 原文链接：[页面URL]
+链接：[页面URL]
 ```
 
 ## 文件结构
@@ -135,7 +135,7 @@ oneclicktofeishu/
    - 检查API Key是否正确
    - 确认账户余额充足
    - 检查模型是否可用
-   - 如果GPT-5 Nano或DeepSeek Chat不可用，会自动提供替代建议
+   - 如果GPT-5 系列或 DeepSeek Chat 不可用，会自动提供替代建议
 
 3. **"内容违反API使用政策"**
    - 页面内容可能包含敏感词汇
@@ -151,9 +151,9 @@ oneclicktofeishu/
    - 检查网络连接是否稳定
 
 6. **"模型不可用错误"**
-   - GPT-5 Nano是最新模型，可能需要特殊访问权限
+   - GPT-5 系列可能需要特殊访问权限
    - 插件会自动验证模型可用性并提供替代建议
-   - 如果GPT-5 Nano不可用，会自动切换到GPT-4o Mini
+   - 如果当前模型不可用，会优先推荐 GPT-5 Mini 或 GPT-4o Mini
 
 7. **悬浮按钮不显示**
    - 确保扩展已正确安装并启用

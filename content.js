@@ -409,11 +409,16 @@ function getStoredConfig() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(['openaiKey', 'deepseekKey', 'feishuWebhook', 'feishuChatId', 'openaiModel', 'systemPrompt', 'apiProvider'], function(result) {
       const provider = result.apiProvider || 'openai';
+      const defaultModels = {
+        openai: 'gpt-5-mini',
+        deepseek: 'deepseek-chat'
+      };
+
       resolve({
         openaiKey: provider === 'deepseek' ? (result.deepseekKey || '') : (result.openaiKey || ''),
         feishuWebhook: result.feishuWebhook || '',
         feishuChatId: result.feishuChatId || '',
-        openaiModel: result.openaiModel || 'gpt-5-nano',
+        openaiModel: result.openaiModel || defaultModels[provider] || 'gpt-5-mini',
         systemPrompt: result.systemPrompt || '',
         apiProvider: provider
       });

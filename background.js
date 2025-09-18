@@ -129,7 +129,10 @@ function filterAndCleanContent(pageData) {
 }
 
 // 使用AI总结内容（支持OpenAI和DeepSeek）
-async function summarizeWithAI(pageData, apiKey, model = 'gpt-5-nano', systemPrompt = '', apiProvider = 'openai') {
+async function summarizeWithAI(pageData, apiKey, model = 'gpt-5-mini', systemPrompt = '', apiProvider = 'openai') {
+  if (!model) {
+    model = apiProvider === 'deepseek' ? 'deepseek-chat' : 'gpt-5-mini';
+  }
   // 调试信息
   console.log('使用的模型:', model);
   console.log('系统提示词参数:', systemPrompt);
@@ -139,68 +142,47 @@ async function summarizeWithAI(pageData, apiKey, model = 'gpt-5-nano', systemPro
   const providerName = apiProvider === 'deepseek' ? 'DeepSeek' : 'OpenAI';
   const baseUrl = apiProvider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
   
+  const isEnglishModel = model.startsWith('gpt-5');
+
   // 根据模型选择系统提示词
-  let defaultSystemPrompt;
-  
-  if (model === 'gpt-5-nano') {
-    // GPT-5-nano使用英文提示词
-    defaultSystemPrompt = `You are a professional content analysis assistant. Please analyze and summarize the provided web page content intelligently.
+  const defaultSystemPrompt = isEnglishModel
+    ? `You are a professional content analysis assistant. Read the provided web page content, extract the essential meaning, and respond in English. Your reply must be valid JSON following this shape:
+{
+  "overview": "A concise paragraph (<=120 words) capturing the core message",
+  "key_points": [
+    "Exactly three bullet points (<=24 words each)",
+    "Each point focuses on a distinct, high-impact insight",
+    "Do not include numbering, newlines, or markdown"
+  ]
+}
+Ensure facts stay faithful to the source, avoid redundancy, and keep the tone objective.`
+    : `你是专业的内容分析助手，请阅读提供的网页文本，给出中文总结。必须输出符合以下结构的 JSON：
+{
+  "overview": "120字以内的导读性段落，概括全文精华",
+  "key_points": [
+    "恰好三条要点，每条不超过24个汉字",
+    "每条聚焦不同的关键信息，不要换行",
+    "不得使用序号、符号或Markdown"
+  ]
+}
+请保持客观准确，避免出现网页原文没有的事实。`;
 
-Analysis requirements:
-1. Extract 3-5 core points
-2. Generate concise and accurate summaries
-3. Maintain an objective and neutral tone
-4. Ensure accuracy and completeness of information
-
-Output format:
-Title: [Generate a suitable title based on the content]
-Highlights:
-• [Point 1]
-• [Point 2]
-• [Point 3]
-Summary: [200-word content summary]`;
-  } else {
-    // 其他模型使用中文提示词
-    defaultSystemPrompt = `你是一个专业的内容分析助手。请对提供的网页内容进行智能分析和总结。
-
-标题要求：
-    1. 用大模型进行改写，使得标题具有吸引力，不要使用网页标题
-
-分析要求：
-1. 提取3-5个核心要点
-2. 生成简洁准确的总结
-3. 保持客观中性的语调
-4. 确保信息准确性和完整性
-
-输出格式：
-标题：[标题]
-要点：
-• [要点1]
-• [要点2]
-• [要点3]
-总结：[200字以内的内容总结]`;
-  }
+  const formatReminder = isEnglishModel
+    ? 'Always respond with JSON matching {"overview": string, "key_points": [string, string, string]} and ensure the array contains exactly three concise items.'
+    : '务必返回形如 {"overview": "...", "key_points": ["...","...","..."]} 的有效 JSON，并确保数组只包含三条精炼要点。';
 
   // 用户提示词
-  let userPrompt;
-  
-  if (model === 'gpt-5-nano') {
-    // GPT-5-nano使用英文用户提示词
-    userPrompt = `Please analyze the following web page content:
+  const userPrompt = isEnglishModel
+    ? `Analyze the following webpage content and produce the requested JSON summary.
 
 Title: ${pageData.title}
-Content: ${pageData.content}
-
-Please analyze and summarize according to the requirements.`;
-  } else {
-    // 其他模型使用中文用户提示词
-    userPrompt = `请分析以下网页内容：
+URL: ${pageData.url}
+Content: ${pageData.content}`
+    : `请分析下列网页内容，按照JSON结构输出结果。
 
 标题：${pageData.title}
-内容：${pageData.content}
-
-请按照要求进行分析和总结。`;
-  }
+链接：${pageData.url}
+内容：${pageData.content}`;
 
   // 构建消息数组
   const messages = [];
@@ -226,12 +208,20 @@ Please analyze and summarize according to the requirements.`;
       role: 'system',
       content: systemPrompt.trim()
     });
+    messages.push({
+      role: 'system',
+      content: formatReminder
+    });
   } else {
     console.log('使用默认系统提示词');
     console.log('默认提示词内容:', defaultSystemPrompt.substring(0, 100) + '...');
     messages.push({
       role: 'system',
       content: defaultSystemPrompt
+    });
+    messages.push({
+      role: 'system',
+      content: formatReminder
     });
   }
   
@@ -241,9 +231,9 @@ Please analyze and summarize according to the requirements.`;
     content: userPrompt
   });
 
-  // 验证模型是否可用（GPT-5-nano可能有特殊访问权限要求）
-  if (model === 'gpt-5-nano') {
-    console.log('使用GPT-5-nano模型，跳过模型列表验证（可能需要特殊访问权限）');
+  // 验证模型是否可用（GPT-5系列可能有特殊访问权限要求）
+  if (model.startsWith('gpt-5')) {
+    console.log('使用GPT-5系列模型，跳过模型列表验证（可能需要特殊访问权限）');
   } else {
     const modelValidation = await validateModel(apiKey, model, apiProvider);
     if (!modelValidation.available) {
@@ -257,21 +247,34 @@ Please analyze and summarize according to the requirements.`;
   
   while (retryCount < maxRetries) {
     try {
+      const baseTemperature = (() => {
+        if (apiProvider === 'openai' && ['gpt-5', 'gpt-5-mini', 'gpt-5-nano'].includes(model)) {
+          return 1.0; // GPT-5系列当前仅支持默认温度
+        }
+        return isEnglishModel ? 0.7 : 0.6;
+      })();
+
+      const requestBody = {
+        model: model,
+        messages: messages,
+        max_completion_tokens: 800,
+        temperature: baseTemperature,
+        top_p: 1.0,
+        frequency_penalty: 0.0,
+        presence_penalty: 0.0
+      };
+
+      if (apiProvider === 'openai') {
+        requestBody.response_format = { type: 'json_object' };
+      }
+
       const response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
         },
-        body: JSON.stringify({
-          model: model,
-          messages: messages,
-          max_completion_tokens: 1000,
-          temperature: (model === 'gpt-5-nano') ? 1.0 : 0.7,
-          top_p: 1.0,
-          frequency_penalty: 0.0,
-          presence_penalty: 0.0
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -288,19 +291,26 @@ Please analyze and summarize according to the requirements.`;
           throw new Error(`${providerName} API密钥无效，请检查密钥是否正确`);
         }
         
+        // 检查是否是超参数错误
+        if (errorMessage.toLowerCase().includes('temperature')) {
+          throw new Error(`${providerName} 参数错误: ${errorMessage}`);
+        }
+
         // 检查是否是模型错误
         if (errorMessage.includes('model') || errorMessage.includes('not found') || errorMessage.includes('does not exist')) {
           // 尝试找到替代模型
           const alternativeModels = {
-            'gpt-5-min': 'gpt-5-nano',
+            'gpt-5': 'gpt-5-mini',
+            'gpt-5-min': 'gpt-5-mini',
+            'gpt-5-mini': 'gpt-5-nano',
             'gpt-5-nano': 'gpt-4o-mini',
-            'gpt-4o-mini': 'gpt-5-nano',
-            'gpt-4o': 'gpt-5-nano',
-            'gpt-4-turbo': 'gpt-5-nano',
-            'gpt-3.5-turbo': 'gpt-5-nano'
+            'gpt-4o-mini': 'gpt-5-mini',
+            'gpt-4o': 'gpt-5-mini',
+            'gpt-4-turbo': 'gpt-5-mini',
+            'gpt-3.5-turbo': 'gpt-5-mini'
           };
           
-          const alternative = alternativeModels[model] || 'gpt-5-nano';
+          const alternative = alternativeModels[model] || 'gpt-5-mini';
           throw new Error(`指定的模型 ${model} 不可用，建议使用 ${alternative} 作为替代。错误详情: ${errorMessage}`);
         }
         
@@ -326,7 +336,10 @@ Please analyze and summarize according to the requirements.`;
 }
 
 // 生成氛围感标题
-async function generateAtmosphereTitles(pageData, apiKey, model = 'gpt-5-nano', apiProvider = 'openai') {
+async function generateAtmosphereTitles(pageData, apiKey, model = 'gpt-5-mini', apiProvider = 'openai') {
+  if (!model) {
+    model = apiProvider === 'deepseek' ? 'deepseek-chat' : 'gpt-5-mini';
+  }
   const providerName = apiProvider === 'deepseek' ? 'DeepSeek' : 'OpenAI';
   const baseUrl = apiProvider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
   
@@ -411,7 +424,8 @@ MIT惊人神作：AI独立提出哈密顿物理！0先验知识，一天破译�
     const titlesText = data.choices[0].message.content.trim();
     
     // 解析返回的标题（用逗号分隔，去掉换行）
-    const titles = titlesText.split(',')
+    const titles = titlesText
+      .split(/[,，]/)
       .map(title => title.trim())
       .filter(title => title.length > 0)
       .slice(0, 2); // 只取前2个标题
@@ -457,12 +471,13 @@ async function validateModel(apiKey, model, apiProvider = 'openai') {
     
     // 如果指定模型不可用，尝试找到替代模型
     const alternativeModels = {
-      'gpt-5-min': ['gpt-5-nano', 'gpt-4o-mini', 'gpt-4o'],
-      'gpt-5-nano': ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
-      'gpt-4o-mini': ['gpt-5-nano', 'gpt-4o', 'gpt-3.5-turbo'],
-      'gpt-4o': ['gpt-5-nano', 'gpt-4o-mini', 'gpt-3.5-turbo'],
-      'gpt-4-turbo': ['gpt-5-nano', 'gpt-4o', 'gpt-4o-mini'],
-      'gpt-3.5-turbo': ['gpt-5-nano', 'gpt-4o-mini', 'gpt-4o']
+      'gpt-5': ['gpt-5-mini', 'gpt-5-nano', 'gpt-4o'],
+      'gpt-5-mini': ['gpt-5', 'gpt-5-nano', 'gpt-4o-mini'],
+      'gpt-5-nano': ['gpt-5-mini', 'gpt-4o-mini', 'gpt-4o'],
+      'gpt-4o-mini': ['gpt-5-mini', 'gpt-5-nano', 'gpt-4o'],
+      'gpt-4o': ['gpt-5-mini', 'gpt-5'],
+      'gpt-4-turbo': ['gpt-5-mini', 'gpt-4o'],
+      'gpt-3.5-turbo': ['gpt-5-mini', 'gpt-4o-mini']
     };
     
     const alternatives = alternativeModels[model] || ['gpt-4o-mini', 'gpt-3.5-turbo'];
@@ -518,115 +533,123 @@ async function sendToFeishu(summary, atmosphereTitles, pageData, config) {
 
 // 解析AI返回的总结内容
 function parseSummary(summary) {
-  const lines = summary.split('\n');
-  let title = '';
-  let highlights = [];
-  let content = '';
+  // 添加调试信息，显示原始输出
+  console.log('AI原始输出:', summary);
+  console.log('输出类型:', typeof summary);
   
-  let currentSection = '';
-  
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    
-    // 支持中文和英文格式
-    if (trimmedLine.startsWith('标题：') || trimmedLine.startsWith('Title:')) {
-      title = trimmedLine.replace(/^标题：|^Title:\s*/i, '').trim();
-    } else if (trimmedLine.startsWith('要点：') || trimmedLine.startsWith('Highlights:')) {
-      currentSection = 'highlights';
-    } else if (trimmedLine.startsWith('总结：') || trimmedLine.startsWith('Summary:')) {
-      currentSection = 'content';
-      content = trimmedLine.replace(/^总结：|^Summary:\s*/i, '').trim();
-    } else if (currentSection === 'highlights' && trimmedLine.startsWith('•')) {
-      highlights.push(trimmedLine.replace('•', '').trim());
-    } else if (currentSection === 'content' && content) {
-      content += ' ' + trimmedLine;
-    }
+  // 如果输入为空，返回空对象
+  if (!summary) {
+    console.log('输入为空，返回空对象');
+    return {
+      title: '',
+      highlights: [],
+      content: '',
+      overview: '',
+      keyPoints: []
+    };
   }
+
+  // 如果是对象，直接使用
+  if (typeof summary === 'object') {
+    console.log('输入是对象，直接使用');
+    return {
+      title: summary.title || '',
+      highlights: summary.key_points || summary.highlights || [],
+      content: summary.overview || summary.content || '',
+      overview: summary.overview || summary.content || '',
+      keyPoints: summary.key_points || summary.highlights || []
+    };
+  }
+
+  // 如果是字符串，尝试解析JSON
+  let raw = summary.trim();
+  console.log('输入是字符串，尝试解析JSON:', raw);
   
-  return {
-    title: title || '页面分析',
-    highlights,
-    content: content || summary
-  };
+  // 移除markdown代码块标记
+  raw = raw.replace(/```json|```/gi, '').trim();
+  
+  // 提取JSON部分
+  const firstBrace = raw.indexOf('{');
+  const lastBrace = raw.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    raw = raw.slice(firstBrace, lastBrace + 1);
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    console.log('JSON解析成功:', parsed);
+    return {
+      title: parsed.title || '',
+      highlights: parsed.key_points || parsed.highlights || [],
+      content: parsed.overview || parsed.content || '',
+      overview: parsed.overview || parsed.content || '',
+      keyPoints: parsed.key_points || parsed.highlights || []
+    };
+  } catch (error) {
+    console.log('JSON解析失败，返回原始文本:', error.message);
+    // 如果JSON解析失败，将原始文本作为内容返回
+    return {
+      title: '',
+      highlights: [],
+      content: raw,
+      overview: raw,
+      keyPoints: []
+    };
+  }
 }
 
 // 构建飞书消息
 function buildFeishuMessage(summary, atmosphereTitles, pageData) {
-  // 使用第一个氛围感标题作为主标题
-  const mainTitle = atmosphereTitles && atmosphereTitles.length > 0 ? atmosphereTitles[0] : summary.title;
+  // 添加调试信息
+  console.log('构建飞书消息 - summary:', summary);
+  console.log('构建飞书消息 - atmosphereTitles:', atmosphereTitles);
   
-  const message = {
-    msg_type: 'post',
-    content: {
-      post: {
-        zh_cn: {
-          title: mainTitle,
-          content: []
-        }
-      }
-    }
+  const sanitize = (value, fallback = '') => {
+    const text = typeof value === 'string' ? value.trim() : '';
+    return text || fallback;
   };
 
-  // 添加主标题
-  message.content.post.zh_cn.content.push([
-    {
-      tag: 'text',
-      text: mainTitle,
-      un_escape: true
+  // 直接使用氛围感标题，不做fallback处理
+  const titles = Array.isArray(atmosphereTitles) ? atmosphereTitles.map(t => sanitize(t)) : [];
+  const title1 = titles[0] || '标题1';
+  const title2 = titles[1] || '标题2';
+
+  // 直接使用AI返回的内容
+  const overview = sanitize(summary.overview) || sanitize(summary.content) || '暂无导读';
+
+  // 直接使用AI返回的要点
+  let keyPoints = Array.isArray(summary.keyPoints) && summary.keyPoints.length > 0
+    ? summary.keyPoints
+    : Array.isArray(summary.highlights) ? summary.highlights : [];
+
+  keyPoints = keyPoints
+    .map(point => sanitize(point))
+    .filter(point => point.length > 0);
+
+  // 如果要点不足3个，用空字符串填充，不自动生成
+  while (keyPoints.length < 3) {
+    keyPoints.push('');
+  }
+
+  const lines = [
+    `标题1：${title1}`,
+    `标题2：${title2}`,
+    '',
+    `导读：${overview}`,
+    '',
+    '要点：'
+  ];
+
+  keyPoints.slice(0, 3).forEach((point, index) => {
+    lines.push(`${index + 1}. ${point || '暂无要点'}`);
+  });
+
+  lines.push('', `链接：${pageData.url}`);
+
+  return {
+    msg_type: 'text',
+    content: {
+      text: lines.join('\n')
     }
-  ]);
-  
-  // 如果有第二个氛围感标题，也添加到内容中
-  if (atmosphereTitles && atmosphereTitles.length > 1) {
-    message.content.post.zh_cn.content.push([
-      {
-        tag: 'text',
-        text: `\n🎯 备选标题：${atmosphereTitles[1]}`,
-        un_escape: true
-      }
-    ]);
-  }
-
-  // 添加要点
-  if (summary.highlights.length > 0) {
-    message.content.post.zh_cn.content.push([
-      {
-        tag: 'text',
-        text: '\n📌 要点：',
-        un_escape: true
-      }
-    ]);
-    
-    summary.highlights.forEach(highlight => {
-      message.content.post.zh_cn.content.push([
-        {
-          tag: 'text',
-          text: `\n• ${highlight}`,
-          un_escape: true
-        }
-      ]);
-    });
-  }
-
-  // 添加总结内容
-  if (summary.content) {
-    message.content.post.zh_cn.content.push([
-      {
-        tag: 'text',
-        text: `\n📝 总结：${summary.content}`,
-        un_escape: true
-      }
-    ]);
-  }
-
-  // 添加原文链接
-  message.content.post.zh_cn.content.push([
-    {
-      tag: 'text',
-      text: `\n🔗 原文链接：${pageData.url}`,
-      un_escape: true
-    }
-  ]);
-
-  return message;
+  };
 }

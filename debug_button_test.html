@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>悬浮按钮调试测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            min-height: 200vh; /* 确保页面足够长，可以测试底部位置 */
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .debug-info {
+            background: #e6f7ff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #1890ff;
+            margin: 20px 0;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        .button-test {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        .test-button:hover {
+            background: #40a9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 悬浮按钮调试测试</h1>
+        
+        <div class="debug-info">
+            <strong>调试说明：</strong>
+            <p>这个页面用于调试悬浮按钮的位置和点击问题。请按照以下步骤进行测试：</p>
+            <ol>
+                <li>打开浏览器开发者工具（F12）</li>
+                <li>查看控制台输出，确认按钮创建信息</li>
+                <li>检查悬浮按钮是否出现在页面底部右侧</li>
+                <li>尝试点击悬浮按钮，查看控制台是否有点击事件日志</li>
+                <li>如果按钮位置不对，在控制台运行 <code>resetFeishuButton()</code> 重置位置</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 测试内容</h3>
+            <p>这是一个很长的测试页面，用于验证悬浮按钮在页面底部的显示效果。页面内容足够长，可以测试按钮在不同滚动位置的表现。</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 调试功能</h3>
+            <div class="button-test">
+                <button class="test-button" onclick="checkButtonStatus()">检查按钮状态</button>
+                <button class="test-button" onclick="resetButtonPosition()">重置按钮位置</button>
+                <button class="test-button" onclick="scrollToBottom()">滚动到页面底部</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 预期结果</h3>
+            <ul>
+                <li>悬浮按钮应该出现在页面底部右侧（距离右边20px，距离顶部85%）</li>
+                <li>按钮应该有白色边框，z-index为999999</li>
+                <li>鼠标悬停时应该显示"发送到飞书"提示</li>
+                <li>点击按钮时控制台应该显示"悬浮按钮被点击了！"</li>
+                <li>按钮应该可以正常拖拽到其他位置</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>⚠️ 故障排除</h3>
+            <p>如果遇到问题，请检查：</p>
+            <ul>
+                <li>控制台是否有错误信息</li>
+                <li>按钮元素是否正确创建</li>
+                <li>按钮的CSS样式是否正确应用</li>
+                <li>是否有其他元素遮挡了按钮</li>
+            </ul>
+        </div>
+
+        <!-- 添加更多内容使页面更长 -->
+        <div class="test-section">
+            <h3>📄 更多测试内容</h3>
+            <p>这里添加更多内容来确保页面足够长，可以测试悬浮按钮在页面底部的效果。</p>
+            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 最终测试</h3>
+            <p>滚动到页面底部，你应该能看到悬浮按钮。如果看不到，请使用上面的"重置按钮位置"按钮。</p>
+            <p>按钮应该是一个蓝色的圆形，带有📝图标，鼠标悬停时会显示提示信息。</p>
+        </div>
+    </div>
+
+    <script>
+        function checkButtonStatus() {
+            const button = document.getElementById('feishu-floating-btn');
+            if (button) {
+                const rect = button.getBoundingClientRect();
+                console.log('按钮状态检查:');
+                console.log('- 按钮存在:', true);
+                console.log('- 按钮位置:', {
+                    top: rect.top,
+                    right: window.innerWidth - rect.right,
+                    bottom: rect.bottom,
+                    left: rect.left
+                });
+                console.log('- 按钮样式:', window.getComputedStyle(button));
+                console.log('- 按钮可见性:', rect.width > 0 && rect.height > 0);
+                alert('按钮状态已输出到控制台');
+            } else {
+                console.log('按钮不存在');
+                alert('按钮不存在，请检查扩展是否正确加载');
+            }
+        }
+
+        function resetButtonPosition() {
+            if (window.resetFeishuButton) {
+                window.resetFeishuButton();
+                alert('按钮位置已重置');
+            } else {
+                alert('重置函数不可用，请确保扩展已正确加载');
+            }
+        }
+
+        function scrollToBottom() {
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        // 页面加载完成后检查按钮
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const button = document.getElementById('feishu-floating-btn');
+                if (button) {
+                    console.log('页面加载完成，按钮已创建');
+                } else {
+                    console.log('页面加载完成，但按钮未找到');
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -8,16 +8,55 @@ document.addEventListener('DOMContentLoaded', function() {
   const sendButton = document.getElementById('sendButton');
   const statusDiv = document.getElementById('status');
 
+  const MODEL_OPTIONS = {
+    openai: [
+      { value: 'gpt-5-mini', label: 'GPT-5 Mini (推荐)' },
+      { value: 'gpt-5', label: 'GPT-5' },
+      { value: 'gpt-5-nano', label: 'GPT-5 Nano' },
+      { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+      { value: 'gpt-4o', label: 'GPT-4o' }
+    ],
+    deepseek: [
+      { value: 'deepseek-chat', label: 'DeepSeek Chat' },
+      { value: 'deepseek-coder', label: 'DeepSeek Coder' }
+    ]
+  };
+
+  function renderModelOptions(provider, selectedValue) {
+    const options = MODEL_OPTIONS[provider] || MODEL_OPTIONS.openai;
+    openaiModelSelect.innerHTML = '';
+
+    options.forEach(({ value, label }) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      openaiModelSelect.appendChild(option);
+    });
+
+    const defaultValue = selectedValue && options.some(opt => opt.value === selectedValue)
+      ? selectedValue
+      : options[0]?.value;
+
+    openaiModelSelect.value = defaultValue;
+    return defaultValue;
+  }
+
   // 加载保存的配置
   chrome.storage.sync.get(['openaiKey', 'deepseekKey', 'feishuWebhook', 'feishuChatId', 'openaiModel', 'systemPrompt', 'apiProvider'], function(result) {
     if (result.feishuWebhook) feishuWebhookInput.value = result.feishuWebhook;
     if (result.feishuChatId) feishuChatIdInput.value = result.feishuChatId;
-    if (result.openaiModel) openaiModelSelect.value = result.openaiModel;
     if (result.systemPrompt) systemPromptTextarea.value = result.systemPrompt;
 
     const provider = result.apiProvider || 'openai';
     apiProviderSelect.value = provider;
+    const selectedModel = renderModelOptions(provider, result.openaiModel);
+
     openaiKeyInput.value = provider === 'deepseek' ? (result.deepseekKey || '') : (result.openaiKey || '');
+
+    // 如果没有保存的模型，使用渲染后的默认值
+    if (!result.openaiModel && selectedModel) {
+      chrome.storage.sync.set({ openaiModel: selectedModel });
+    }
   });
 
   // 保存配置
@@ -121,7 +160,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   apiProviderSelect.addEventListener('change', function() {
     chrome.storage.sync.get(['openaiKey', 'deepseekKey'], function(result) {
-      openaiKeyInput.value = apiProviderSelect.value === 'deepseek' ? (result.deepseekKey || '') : (result.openaiKey || '');
+      const provider = apiProviderSelect.value;
+      openaiKeyInput.value = provider === 'deepseek' ? (result.deepseekKey || '') : (result.openaiKey || '');
+
+      renderModelOptions(provider, null);
       saveConfig();
     });
   });
